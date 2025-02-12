@@ -4,13 +4,14 @@ import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Linking, StyleSheet } from "react-native";
 import { Banner, Button, TextInput } from "react-native-paper";
+import { useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "expo-router";
 import { useBoolean } from "usehooks-ts";
 import { OrderAdditionalInfoFormSchema, OrderAdditionalInfoFormType } from "./types";
 import { ChoppFormField, ChoppThemedText, Order, useSuperDispatch } from "@/shared";
 import { createOrder } from "@/store/slices/order-slice";
 import { CreateOrderDTO } from "@/store/slices/order-slice/types";
+import { resetShoppingCart } from "@/store/slices/shopping-cart-slice";
 
 type Props = {
   onClose: () => void;
@@ -21,14 +22,14 @@ export const OrderAdditionalInfoForm = ({ onClose }: Props) => {
   const { superDispatch } = useSuperDispatch<Order, unknown>();
   const { value: isBannerVisible, setTrue: showBanner, setFalse: hideBanner } = useBoolean();
   const [bannerMessage, setBannerMessage] = useState("");
-  const router = useRouter();
+  const dispatch = useDispatch();
 
   const onCommitOrder = ({ comment, address }: OrderAdditionalInfoFormType) => {
     superDispatch({
       action: createOrder({ comment, address } as CreateOrderDTO),
       thenHandler: (order) => {
+        dispatch(resetShoppingCart());
         Linking.openURL(order.paymentUrl).catch((err) => console.error("Ошибка открытия ссылки:", err));
-        router.push("/tab-order");
         onClose();
       },
       catchHandler: (err) => {

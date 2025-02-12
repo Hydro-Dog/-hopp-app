@@ -11,15 +11,18 @@ export type ShoppingCartState = {
 
 const initialState: ShoppingCartState = {
   shoppingCart: { items: [], quantity: 0, totalPrice: 0 },
-  //TODO: залагал компилятор, выдавал ошибку из-за FETCH_STATUS
-  fetchShoppingCartStatus: "idle",
+  fetchShoppingCartStatus: FETCH_STATUS.IDLE,
   fetchShoppingCartError: null,
 };
 
 export const shoppingCart = createSlice({
   name: "shoppingCart",
   initialState,
-  reducers: {},
+  reducers: {
+    resetShoppingCart: (state) => {
+      state.shoppingCart = { items: [], quantity: 0, totalPrice: 0 };
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(postShoppingCart.pending, (state) => {
@@ -54,3 +57,5 @@ export const shoppingCart = createSlice({
       });
   },
 });
+
+export const { resetShoppingCart } = shoppingCart.actions;

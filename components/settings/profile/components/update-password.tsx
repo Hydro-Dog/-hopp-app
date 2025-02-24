@@ -5,28 +5,15 @@ import { View, StyleSheet } from "react-native";
 import { Button, IconButton, TextInput } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TFunction } from "i18next";
 import { useBoolean } from "usehooks-ts";
 import { z } from "zod";
+import { usePasswordFormSchema } from "./hooks";
 import { ChoppFormField } from "@/shared/components/chopp-form-field";
-import {
-  useChoppSnackbar,
-  SNACKBAR_VARIANTS,
-} from "@/shared/components/chopp-snackbar-stack";
+import { useChoppSnackbar, SNACKBAR_VARIANTS } from "@/shared/components/chopp-snackbar-stack";
 import { useChoppTheme } from "@/shared/context/chopp-theme-context";
 import { FETCH_STATUS } from "@/shared/types/fetch-status";
 import { updateCurrentUser } from "@/store/slices/user-slice/index";
 import { AppDispatch, RootState } from "@/store/store";
-
-export const passwordSchema = (t: TFunction<"translation", undefined>) =>
-  z.object({
-    password: z
-      .string()
-      .min(8, t("formErrors.minLength", { count: 8 }))
-      .max(30, t("formErrors.maxLength", { count: 30 })),
-  });
-
-export type PasswordFormType = z.infer<ReturnType<typeof passwordSchema>>;
 
 type Props = {
   mode: "view" | "edit";
@@ -36,20 +23,20 @@ type Props = {
 export const UpdatePassword = ({ mode, setMode }: Props) => {
   const { theme } = useChoppTheme();
   const { t } = useTranslation();
-  const { value: passwordVisible, toggle: togglePasswordVisibility } =
-    useBoolean();
-  const { updateCurrentUserStatus } = useSelector(
-    (state: RootState) => state.user,
-  );
+  const { value: passwordVisible, toggle: togglePasswordVisibility } = useBoolean();
+  const { updateCurrentUserStatus } = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch<AppDispatch>();
+
+  const passwordFormSchema = usePasswordFormSchema();
+  type PasswordFormSchemaType = z.infer<typeof passwordFormSchema>;
 
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<PasswordFormType>({
-    resolver: zodResolver(passwordSchema(t)),
+  } = useForm<PasswordFormSchemaType>({
+    resolver: zodResolver(passwordFormSchema),
     defaultValues: {
       password: "",
     },
@@ -62,7 +49,7 @@ export const UpdatePassword = ({ mode, setMode }: Props) => {
     setMode("view");
   };
 
-  const onSubmit: SubmitHandler<PasswordFormType> = async (data) => {
+  const onSubmit: SubmitHandler<PasswordFormSchemaType> = async (data) => {
     try {
       await dispatch(updateCurrentUser(data)).unwrap();
       setMode("view");
@@ -83,10 +70,7 @@ export const UpdatePassword = ({ mode, setMode }: Props) => {
     </Button>
   ) : (
     <View>
-      <ChoppFormField
-        message={t("enterNewPassword")}
-        errorMessage={errors.password?.message}
-      >
+      <ChoppFormField message={t("enterNewPassword")} errorMessage={errors.password?.message}>
         <Controller
           control={control}
           name="password"
@@ -114,12 +98,7 @@ export const UpdatePassword = ({ mode, setMode }: Props) => {
         />
       </ChoppFormField>
       <View style={styles.buttons}>
-        <IconButton
-          icon="close"
-          iconColor={theme.colors.secondary}
-          size={20}
-          onPress={onClose}
-        />
+        <IconButton icon="close" iconColor={theme.colors.secondary} size={20} onPress={onClose} />
         <IconButton
           loading={updateCurrentUserStatus === FETCH_STATUS.LOADING}
           icon="check"

@@ -1,8 +1,10 @@
-import { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { LoginType, ZodShape } from "./types";
+import { LoginType, ZodShape } from "../types";
 
-export const loginSchema = (t: TFunction<"translation", undefined>, loginType: LoginType) => {
+export const useLoginFormSchema = (loginType: LoginType) => {
+  const { t } = useTranslation();
+
   const zodShape: ZodShape = {
     password: z
       .string()
@@ -26,5 +28,3 @@ export const loginSchema = (t: TFunction<"translation", undefined>, loginType: L
 
   return z.object(zodShape);
 };
-
-export type LoginFormType = z.infer<ReturnType<typeof loginSchema>>;

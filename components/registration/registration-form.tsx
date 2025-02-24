@@ -7,7 +7,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import { useBoolean } from "usehooks-ts";
-import { RegistrationFormType, registrationSchema } from "./types";
+import { z } from "zod";
+import { useRegistrationFormSchema } from "./hooks";
 import ChoppCheckbox from "@/shared/components/chopp-checkbox";
 import { ChoppDialog } from "@/shared/components/chopp-dialog";
 import { ChoppFormField } from "@/shared/components/chopp-form-field";
@@ -28,12 +29,15 @@ export const RegistrationForm = () => {
   const { createUserStatus } = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch<AppDispatch>();
 
+  const registrationFormSchema = useRegistrationFormSchema();
+  type RegistrationFormSchemaType = z.infer<typeof registrationFormSchema>;
+
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegistrationFormType>({
-    resolver: zodResolver(registrationSchema(t)),
+  } = useForm<RegistrationFormSchemaType>({
+    resolver: zodResolver(registrationFormSchema),
     defaultValues: {
       fullName: "",
       phoneNumber: "",
@@ -46,7 +50,7 @@ export const RegistrationForm = () => {
 
   const { pushNewNotification } = useChoppSnackbar();
 
-  const onSubmit: SubmitHandler<RegistrationFormType> = async (data) => {
+  const onSubmit: SubmitHandler<RegistrationFormSchemaType> = async (data) => {
     //TODO: вынести конструкцию по обработке ошибок запроса отдельно Часто переиспользуется
     try {
       const res = await dispatch(createUser(data)).unwrap();

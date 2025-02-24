@@ -17,9 +17,7 @@ type Props = {
 
 export const UserProfile = ({ user, setEditMode }: Props) => {
   const { t } = useTranslation();
-  const { currentUser, fetchCurrentUserStatus } = useSelector(
-    (state: RootState) => state.user,
-  );
+  const { currentUser, fetchCurrentUserStatus } = useSelector((state: RootState) => state.user);
 
   const formattedUser = {
     ...currentUser,
@@ -29,14 +27,8 @@ export const UserProfile = ({ user, setEditMode }: Props) => {
   return (
     <View style={styles.container}>
       <ChoppViewItems
-        loading={
-          fetchCurrentUserStatus === FETCH_STATUS.LOADING ||
-          fetchCurrentUserStatus === FETCH_STATUS.IDLE
-        }
-        items={KEYS.reduce(
-          (acc, key) => ({ ...acc, [t(key)]: formattedUser?.[key] }),
-          {},
-        )}
+        loading={fetchCurrentUserStatus === FETCH_STATUS.LOADING || fetchCurrentUserStatus === FETCH_STATUS.IDLE}
+        items={KEYS.reduce((acc, key) => ({ ...acc, [t(key)]: formattedUser?.[key] }), {})}
       />
       <Button mode="contained" onPress={setEditMode}>
         {t("edit")}

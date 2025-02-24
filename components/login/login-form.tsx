@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
@@ -6,7 +7,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import { useBoolean } from "usehooks-ts";
-import { LoginFormType, loginSchema } from ".";
+import { z } from "zod";
+import { useLoginFormSchema } from "./hooks";
+import { LoginType } from "./types";
 import { ChoppFormField } from "@/shared/components/chopp-form-field";
 import { useChoppSnackbar, SNACKBAR_VARIANTS } from "@/shared/components/chopp-snackbar-stack";
 import { useAuthContext } from "@/shared/context/auth-context";
@@ -17,8 +20,6 @@ import { addToStorage } from "@/shared/utils/async-storage-methods";
 import { formatPhoneNumber } from "@/shared/utils/format-phone-number";
 import { login, UserLoginDTO } from "@/store/slices/user-slice/index";
 import { RootState, AppDispatch } from "@/store/store";
-import { useState } from "react";
-import { LoginType } from "./types";
 
 export const LoginForm = () => {
   const { setAuth, setIsAsyncStorageLoaded } = useAuthContext();
@@ -33,12 +34,15 @@ export const LoginForm = () => {
   const [loginType, setLoginType] = useState<LoginType>(LoginType.EMAIL);
   const isEmailLoginType = loginType === LoginType.EMAIL;
 
+  const loginSchema = useLoginFormSchema(loginType);
+  type LoginFormType = z.infer<typeof loginSchema>;
+
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormType>({
-    resolver: zodResolver(loginSchema(t, loginType)),
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       password: "",
       phoneNumber: "",

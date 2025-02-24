@@ -7,7 +7,8 @@ import { Banner, Button, TextInput } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBoolean } from "usehooks-ts";
-import { OrderAdditionalInfoFormSchema, OrderAdditionalInfoFormType } from "./types";
+import { z } from "zod";
+import { useOrderAdditionalInfoFormSchema } from "./hooks";
 import { ChoppFormField, ChoppThemedText, Order, useSuperDispatch } from "@/shared";
 import { createOrder } from "@/store/slices/order-slice";
 import { CreateOrderDTO } from "@/store/slices/order-slice/types";
@@ -23,6 +24,9 @@ export const OrderAdditionalInfoForm = ({ onClose }: Props) => {
   const { value: isBannerVisible, setTrue: showBanner, setFalse: hideBanner } = useBoolean();
   const [bannerMessage, setBannerMessage] = useState("");
   const dispatch = useDispatch();
+
+  const orderAdditionalInfoFormSchema = useOrderAdditionalInfoFormSchema();
+  type OrderAdditionalInfoFormType = z.infer<typeof orderAdditionalInfoFormSchema>;
 
   const onCommitOrder = ({ comment, address }: OrderAdditionalInfoFormType) => {
     superDispatch({
@@ -49,7 +53,7 @@ export const OrderAdditionalInfoForm = ({ onClose }: Props) => {
     handleSubmit,
     formState: { errors },
   } = useForm<OrderAdditionalInfoFormType>({
-    resolver: zodResolver(OrderAdditionalInfoFormSchema(t)),
+    resolver: zodResolver(orderAdditionalInfoFormSchema),
     defaultValues: {
       address: "",
       comment: "",

@@ -5,13 +5,11 @@ import { View, StyleSheet } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { UpdatePassword } from "./components";
-import { ProfileFormType, profileSchema } from "./types";
+import { useProfileFormSchema } from "./hooks";
 import { ChoppFormField } from "@/shared/components/chopp-form-field";
-import {
-  useChoppSnackbar,
-  SNACKBAR_VARIANTS,
-} from "@/shared/components/chopp-snackbar-stack";
+import { useChoppSnackbar, SNACKBAR_VARIANTS } from "@/shared/components/chopp-snackbar-stack";
 import { FETCH_STATUS } from "@/shared/types/fetch-status";
 import { formatPhoneNumber } from "@/shared/utils/format-phone-number";
 import { updateCurrentUser, User } from "@/store/slices/user-slice/index";
@@ -25,17 +23,18 @@ export const UserProfileForm = ({ setViewMode }: Props) => {
   const [passwordMode, setPasswordMode] = useState<"view" | "edit">("view");
   const dispatch = useDispatch<AppDispatch>();
   const { t } = useTranslation();
-  const { currentUser, updateCurrentUserStatus } = useSelector(
-    (state: RootState) => state.user,
-  );
+  const { currentUser, updateCurrentUserStatus } = useSelector((state: RootState) => state.user);
+
+  const profileFormSchema = useProfileFormSchema();
+  type ProfileFormSchemaType = z.infer<typeof profileFormSchema>;
 
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<ProfileFormType>({
-    resolver: zodResolver(profileSchema(t)),
+  } = useForm<ProfileFormSchemaType>({
+    resolver: zodResolver(profileFormSchema),
     defaultValues: {
       fullName: currentUser?.fullName,
       phoneNumber: currentUser?.phoneNumber,
@@ -45,7 +44,7 @@ export const UserProfileForm = ({ setViewMode }: Props) => {
 
   const { pushNewNotification } = useChoppSnackbar();
 
-  const onSubmit: SubmitHandler<ProfileFormType> = async (data) => {
+  const onSubmit: SubmitHandler<ProfileFormSchemaType> = async (data) => {
     try {
       await dispatch(updateCurrentUser(data)).unwrap();
       setViewMode();
@@ -133,10 +132,7 @@ export const UserProfileForm = ({ setViewMode }: Props) => {
         <Button
           mode="contained"
           loading={updateCurrentUserStatus === FETCH_STATUS.LOADING}
-          disabled={
-            updateCurrentUserStatus === FETCH_STATUS.LOADING ||
-            passwordMode === "edit"
-          }
+          disabled={updateCurrentUserStatus === FETCH_STATUS.LOADING || passwordMode === "edit"}
           onPress={handleSubmit(onSubmit)}
         >
           {t("save")}
